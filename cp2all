@@ -1,0 +1,86 @@
+#!/usr/bin/php -q
+<?php
+        $dn = dirname(__FILE__);
+        if ($dn == "/usr/bin") { $incf = "/etc/ssh2all.conf"; }
+        else { $incf = "{$dn}/config.php"; }
+        if (!file_exists($incf)) { die("ssh2all: config file not found: {$incf}\n"); }
+        require_once($incf);
+
+        if ($_SERVER["argc"] < 2) { printHelp(); }
+
+        $flags = array("json" => false);
+        $opt = $_SERVER["argv"][1];
+        $fstart = 1;
+        $rfileflag = 0;
+        if (substr($opt, 0, 2) == "--") {
+                switch ($opt) {
+                        case "--json":
+                                $flags["json"] = true;
+                                $fstart++;
+                                break;
+                        case "--remote":
+                                $remotefile = $_SERVER["argv"][2];
+                                $rfileflag = 1;
+                                $fstart = $fstart + 2;
+                                break;
+                        default:
+                                printHelp();
+                                break;
+                }
+        }
+
+        $file = "";
+        for ($i = $fstart; $i < $_SERVER["argc"]; $i++) {
+                $file = "{$file} {$_SERVER["argv"][$i]}";
+        }
+
+        $file = trim($file);
+
+        if ($rfileflag == 0) {
+                $remotefile = $file;
+        }
+
+        if (!file_exists($file)) { die("Error: File does not exist: {$file}\n"); }
+
+        if ($file == "") { printHelp(); }
+
+        if (!$flags["json"]) {
+                print "Copying \"{$file}\" to ".count($hosts)." hosts...\n";
+                print "\033[32mLast chance to abort. Starting in";
+                for ($i = 3; $i > 0; $i--) {
+                        print " \033[36m{$i}\033[0m";
+                        sleep(1);
+                }
+                print "\033[0m\n";
+        }
+
+        $js = array();
+        foreach ($hosts as $host) { execnode($host, $file, $remotefile); }
+        passthru("tput init");
+
+        if ($flags["json"]) {
+                print json_encode($js, JSON_FORCE_OBJECT);
+        }
+
+        function execnode($node, $file, $remotefile) {
+                global $creds;
+                global $flags;
+                global $js;
+                $cmd = "/usr/bin/sshpass -p '{$creds["password"]}' scp -oStrictHostKeyChecking=no {$file} {$creds["username"]}@{$node}:{$remotefile}";
+                if (!$flags["json"]) {
+                        print "\n\033[32m-------------------------------\033[0m\n";
+                        print "\033[32m COPYING FILE TO: \033[36m{$node}\033[32m ...\033[0m\n";
+                        print "\033[32m-------------------------------\n\033[37m";
+                        passthru($cmd);
+                }
+                else {
+                        $js[$node] = exec($cmd);
+                }
+        }
+
+        function printHelp() {
+                print "usage: {$_SERVER["argv"][0]} [--json] [--remote /path/to/file] <file>\n";
+                die();
+        }
+
+?>
