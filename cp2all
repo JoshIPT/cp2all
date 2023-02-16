@@ -1,9 +1,9 @@
 #!/usr/bin/php -q
 <?php
         $dn = dirname(__FILE__);
-        if ($dn == "/usr/bin") { $incf = "/etc/ssh2all.conf"; }
+        if ($dn == "/usr/bin") { $incf = "/etc/cp2all.conf"; }
         else { $incf = "{$dn}/config.php"; }
-        if (!file_exists($incf)) { die("ssh2all: config file not found: {$incf}\n"); }
+        if (!file_exists($incf)) { die("cp2all: config file not found: {$incf}\n"); }
         require_once($incf);
 
         if ($_SERVER["argc"] < 2) { printHelp(); }
