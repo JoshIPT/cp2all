@@ -25,9 +25,14 @@ Configuration is done in config.php (see Installation for alternative config fil
 ?>
 ```
 ## Usage
-Once the config file is written, execute cp2all with the arguments you want to run on all hosts:
+Once the config file is written, execute cp2all with the file you want to copy to all hosts:
 ```
-# ./cp2all uptime
+# ./cp2all /etc/ssh/sshd.conf
 ```
+The above will copy /etc/ssh/sshd.conf to all defined hosts, and place it in /etc/ssh/sshd.conf on the remote host.
+```
+# ./cp2all --remote /tmp/sshconfig /etc/ssh/sshd.conf
+```
+The above will copy /etc/ssh/sshd.conf to all defined hosts, and place it in /tmp/sshconfig on the remote host.
 ## Installation
 Execute ```install cp2all /usr/bin/cp2all``` to install cp2all. Once installed, all configuration will be read from ```/etc/cp2all.conf```
